@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Temple Escape</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: #222;
+            font-family: Arial;
+            color: white;
+            text-align: center;
+        }
+
+        #game {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            background: linear-gradient(#4CAF50, #2E7D32);
+            overflow: hidden;
+            border-bottom: 5px solid #111;
+        }
+
+        #player {
+            position: absolute;
+            bottom: 0;
+            left: 50px;
+            width: 40px;
+            height: 40px;
+            background: gold;
+            border-radius: 5px;
+        }
+
+        .obstacle {
+            position: absolute;
+            bottom: 0;
+            width: 30px;
+            height: 50px;
+            background: red;
+        }
+
+        #score {
+            font-size: 20px;
+            margin-top: 10px;
+        }
+
+        #gameOver {
+            display: none;
+            font-size: 30px;
+            margin-top: 20px;
+            color: red;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Temple Escape</h1>
+<div id="game">
+    <div id="player"></div>
+</div>
+<div id="score">Score: 0</div>
+<div id="gameOver">Game Over! Refresh to Restart</div>
+
+<script>
+    const player = document.getElementById("player");
+    const game = document.getElementById("game");
+    const scoreDisplay = document.getElementById("score");
+    const gameOverText = document.getElementById("gameOver");
+
+    let isJumping = false;
+    let score = 0;
+    let speed = 5;
+    let gameOver = false;
+
+    // Jump
+    document.addEventListener("keydown", function(event) {
+        if (event.code === "Space" && !isJumping && !gameOver) {
+            jump();
+        }
+    });
+
+    function jump() {
+        isJumping = true;
+        let jumpHeight = 0;
+
+        let upInterval = setInterval(() => {
+            if (jumpHeight >= 100) {
+                clearInterval(upInterval);
+
+                let downInterval = setInterval(() => {
+                    if (jumpHeight <= 0) {
+                        clearInterval(downInterval);
+                        isJumping = false;
+                    }
+                    jumpHeight -= 5;
+                    player.style.bottom = jumpHeight + "px";
+                }, 20);
+            }
+            jumpHeight += 5;
+            player.style.bottom = jumpHeight + "px";
+        }, 20);
+    }
+
+    // Create Obstacles
+    function createObstacle() {
+        if (gameOver) return;
+
+        const obstacle = document.createElement("div");
+        obstacle.classList.add("obstacle");
+        obstacle.style.left = "100%";
+        game.appendChild(obstacle);
+
+        let obstaclePosition = window.innerWidth;
+
+        let moveInterval = setInterval(() => {
+            if (obstaclePosition < -30) {
+                clearInterval(moveInterval);
+                game.removeChild(obstacle);
+            }
+
+            // Collision detection
+            if (
+                obstaclePosition < 90 &&
+                obstaclePosition > 50 &&
+                parseInt(player.style.bottom) < 40
+            ) {
+                gameOver = true;
+                gameOverText.style.display = "block";
+                clearInterval(moveInterval);
+            }
+
+            obstaclePosition -= speed;
+            obstacle.style.left = obstaclePosition + "px";
+        }, 20);
+
+        // Increase speed slowly
+        speed += 0.2;
+
+        setTimeout(createObstacle, 2000);
+    }
+
+    // Score counter
+    function updateScore() {
+        if (!gameOver) {
+            score++;
+            scoreDisplay.textContent = "Score: " + score;
+        }
+    }
+
+    setInterval(updateScore, 100);
+    createObstacle();
+</script>
+
+</body>
+</html>
